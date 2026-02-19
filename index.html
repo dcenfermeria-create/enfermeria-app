@@ -1,181 +1,141 @@
-<script>
-let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
-
-document.getElementById("mesSelector").value = new Date().toISOString().slice(0,7);
-
-function guardar(){
-    localStorage.setItem("pacientes", JSON.stringify(pacientes));
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Visitas Domiciliarias</title>
+<style>
+body{
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg,#1f2937,#111827);
+    color:white;
+    margin:0;
+    padding:20px;
 }
+h1{ text-align:center; margin-bottom:20px; }
+.card{
+    background:#1f2937;
+    padding:20px;
+    border-radius:15px;
+    margin-bottom:25px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+input, select{
+    padding:8px;
+    border-radius:8px;
+    border:none;
+    margin:5px;
+}
+button{
+    background:#3b82f6;
+    color:white;
+    border:none;
+    padding:8px 15px;
+    border-radius:8px;
+    cursor:pointer;
+}
+button:hover{ background:#2563eb; }
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+    background:white;
+    color:black;
+    border-radius:10px;
+    overflow:hidden;
+}
+th{
+    background:#3b82f6;
+    color:white;
+    padding:10px;
+}
+td{
+    padding:8px;
+    border-bottom:1px solid #ddd;
+}
+.pagado{ background:#d1fae5 !important; }
+.pendiente{ background:#fee2e2 !important; }
+</style>
+</head>
+<body>
+
+<h1>Visitas Domiciliarias</h1>
+
+<div class="card">
+<h2>Pacientes</h2>
+<table>
+<thead>
+<tr>
+<th>Documento</th>
+<th>Nombre</th>
+<th>Procedimiento</th>
+<th>Valor</th>
+<th>Estado</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody id="tablaPacientes"></tbody>
+</table>
+</div>
+
+<div class="card">
+<h2>Agregar Paciente</h2>
+<input type="text" id="doc" placeholder="Documento">
+<input type="text" id="nombre" placeholder="Nombre completo">
+<input type="text" id="procedimiento" placeholder="Procedimiento">
+<input type="number" id="valor" placeholder="Valor">
+<button onclick="agregarPaciente()">Agregar</button>
+</div>
+
+<script>
+let pacientes=[];
 
 function agregarPaciente(){
-    const mes = mesSelector.value;
+    let docVal = document.getElementById("doc").value;
+    let nombreVal = document.getElementById("nombre").value;
+    let procVal = document.getElementById("procedimiento").value;
+    let valorVal = parseFloat(document.getElementById("valor").value);
 
-    let nuevo = {
-        eps: eps.value.trim(),
-        documento: doc.value.trim(),
-        nombre: nombre.value.trim(),
-        direccion: direccion.value.trim(),
-        telefono: telefono.value.trim(),
-        procedimiento: procedimiento.value.trim(),
-        valor: parseFloat(valor.value),
-        estado: "Pendiente",
-        mes: mes
-    };
+    if(!docVal||!nombreVal||!valorVal) return alert("Documento, nombre y valor son obligatorios");
 
-    if(!nuevo.documento || !nuevo.nombre)
-        return alert("Documento y nombre son obligatorios");
+    pacientes.push({
+        documento:docVal,
+        nombre:nombreVal,
+        procedimiento:procVal,
+        valor:valorVal,
+        estado:"Pendiente"
+    });
 
-    if(!nuevo.valor || nuevo.valor <= 0)
-        return alert("El valor debe ser mayor a 0");
-
-    if(pacientes.some(p => p.documento === nuevo.documento && p.mes === mes))
-        return alert("Paciente ya existe en este mes");
-
-    pacientes.push(nuevo);
     limpiar();
-    guardar();
     render();
 }
 
 function limpiar(){
-    eps.value="";
-    doc.value="";
-    nombre.value="";
-    direccion.value="";
-    telefono.value="";
-    procedimiento.value="";
-    valor.value="";
+    doc.value=""; nombre.value=""; procedimiento.value=""; valor.value="";
 }
 
 function cambiarEstado(i){
-    if(confirm("¿Cambiar estado del paciente?")){
-        pacientes[i].estado =
-            pacientes[i].estado === "Pendiente"
-            ? "Pagado"
-            : "Pendiente";
-        guardar();
-        render();
-    }
-}
-
-function eliminarPaciente(i){
-    if(confirm("¿Eliminar paciente?")){
-        pacientes.splice(i,1);
-        guardar();
-        render();
-    }
+    pacientes[i].estado = pacientes[i].estado==="Pendiente"?"Pagado":"Pendiente";
+    render();
 }
 
 function render(){
-    const mes = mesSelector.value;
-    let tabla = tablaPacientes;
+    let tabla=document.getElementById("tablaPacientes");
     tabla.innerHTML="";
-
-    let total=0;
-    let totalPagado=0;
-    let totalPendiente=0;
-    let resumen={};
-
     pacientes.forEach((p,i)=>{
-        if(p.mes!==mes) return;
-
-        total+=p.valor;
-
-        if(p.estado==="Pagado")
-            totalPagado+=p.valor;
-        else
-            totalPendiente+=p.valor;
-
-        if(!resumen[p.eps]) resumen[p.eps]=0;
-        resumen[p.eps]+=p.valor;
-
         tabla.innerHTML+=`
         <tr class="${p.estado==="Pagado"?"pagado":"pendiente"}">
-            <td>${p.eps}</td>
             <td>${p.documento}</td>
             <td>${p.nombre}</td>
-            <td>${p.direccion}</td>
-            <td>${p.telefono}</td>
             <td>${p.procedimiento}</td>
-            <td>
-                <input type="number" value="${p.valor}"
-                onchange="pacientes[${i}].valor=parseFloat(this.value);guardar();render();">
-            </td>
+            <td><input type="number" value="${p.valor}" onchange="pacientes[${i}].valor=parseFloat(this.value);render();"></td>
             <td>${p.estado}</td>
-            <td>
-                <button onclick="cambiarEstado(${i})">Estado</button>
-                <button onclick="eliminarPaciente(${i})" style="background:#ef4444;">Eliminar</button>
-            </td>
+            <td><button onclick="cambiarEstado(${i})">Cambiar</button></td>
         </tr>`;
     });
-
-    totalGeneral.innerHTML = "$"+total.toLocaleString();
-
-    resumenEmpresas.innerHTML = `
-        <strong>Total Pagado:</strong> $${totalPagado.toLocaleString()}<br>
-        <strong>Total Pendiente:</strong> $${totalPendiente.toLocaleString()}<br><br>
-    `;
-
-    for(let e in resumen){
-        resumenEmpresas.innerHTML +=
-            e + ": $" + resumen[e].toLocaleString() + "<br>";
-    }
 }
 
-function exportarExcel(){
-    const mes = mesSelector.value;
-    const datos = pacientes.filter(p=>p.mes===mes);
-
-    const ws = XLSX.utils.json_to_sheet(datos);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Facturación");
-
-    XLSX.writeFile(wb, "Facturacion_"+mes+".xlsx");
-}
-
-function importarExcel(){
-    const file = excelFile.files[0];
-    const mes = mesSelector.value;
-    if(!file) return alert("Seleccione archivo");
-
-    const reader = new FileReader();
-    reader.onload=function(e){
-        const data=new Uint8Array(e.target.result);
-        const wb=XLSX.read(data,{type:'array'});
-        const sheet=wb.Sheets[wb.SheetNames[0]];
-        const json=XLSX.utils.sheet_to_json(sheet);
-
-        let count=0;
-
-        json.forEach(row=>{
-            let doc=row["Número de documento"]||row["numero de documento"];
-            let nombre=row["Nombre completo"];
-            let eps=row["Aseguradora"]||empresaImport.value;
-            let direccion=row["Dirección"]||"";
-            let telefono=row["Teléfono"]||"";
-            let procedimiento=row["Procedimiento"]||"";
-            let valor=parseFloat(row["Valor"]||0);
-
-            if(!doc||!nombre||valor<=0) return;
-
-            if(!pacientes.some(p=>p.documento===doc && p.mes===mes)){
-                pacientes.push({
-                    eps, documento:doc, nombre,
-                    direccion, telefono, procedimiento,
-                    valor, estado:"Pendiente", mes
-                });
-                count++;
-            }
-        });
-
-        alert("Importados: "+count+" pacientes");
-        guardar();
-        render();
-    };
-
-    reader.readAsArrayBuffer(file);
-}
-
-mesSelector.addEventListener("change",render);
 render();
 </script>
+
+</body>
+</html>
