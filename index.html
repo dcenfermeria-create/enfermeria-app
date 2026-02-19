@@ -36,7 +36,17 @@ Potencial del Mes:
 <button onclick="toggleIngresos()">👁</button>
 </div>
 </div>
+<div class="card">
+<h3>Progreso del Mes</h3>
 
+<div style="background:#ddd;border-radius:10px;height:25px;">
+<div id="barraProgreso" 
+style="height:25px;width:0%;background:#2563eb;border-radius:10px;">
+</div>
+</div>
+
+<p id="porcentajeTexto">0%</p>
+</div>
 <div class="card">
 <h3>Agregar Paciente</h3>
 <form id="form">
@@ -141,22 +151,28 @@ localStorage.setItem("pacientes", JSON.stringify(pacientes))
 }
 
 function actualizarDashboard(){
+
 document.getElementById("total").innerText = pacientes.length
 
 let pendientes = pacientes.filter(p=>p.estado==="Pendiente")
 document.getElementById("pendientes").innerText = pendientes.length
 
-// Ingresos cobrados (solo pagados)
 let ingresos = pacientes
 .filter(p=>p.estado==="Pagado")
 .reduce((a,b)=>a+Number(b.valor||0),0)
 
-// Potencial total (todos los pacientes)
 let potencial = pacientes
 .reduce((a,b)=>a+Number(b.valor||0),0)
 
 document.getElementById("ingresos").innerText = ingresos
 document.getElementById("potencial").innerText = potencial
+
+let porcentaje = potencial > 0 ? (ingresos / potencial) * 100 : 0
+porcentaje = porcentaje.toFixed(1)
+
+document.getElementById("barraProgreso").style.width = porcentaje + "%"
+document.getElementById("porcentajeTexto").innerText = porcentaje + "%"
+
 }
 function render(){
 let tabla = document.getElementById("tabla")
