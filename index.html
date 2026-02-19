@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión de Pacientes</title>
+<title>Gestión de Pacientes PRO</title>
+
 <style>
 body{font-family:Arial;background:#f4f6f9;margin:20px}
 h1{text-align:center}
@@ -21,32 +22,36 @@ th{background:#2563eb;color:white}
 .dashboard div{background:white;padding:15px;border-radius:10px;flex:1;text-align:center;font-weight:bold}
 </style>
 </head>
+
 <body>
 
 <h1>Gestión de Pacientes</h1>
 
+<!-- DASHBOARD -->
 <div class="dashboard">
 <div>Total Pacientes: <span id="total">0</span></div>
 <div>Pendientes: <span id="pendientes">0</span></div>
 <div>
-Ingresos Cobrados: 
+Ingresos Cobrados:<br>
 <span id="ingresos">0</span><br>
-Potencial del Mes: 
-<span id="potencial">0</span>
+Potencial del Mes:<br>
+<span id="potencial">0</span><br>
 <button onclick="toggleIngresos()">👁</button>
 </div>
 </div>
+
+<!-- PROGRESO -->
 <div class="card">
 <h3>Progreso del Mes</h3>
-
 <div style="background:#ddd;border-radius:10px;height:25px;">
 <div id="barraProgreso" 
 style="height:25px;width:0%;background:#2563eb;border-radius:10px;">
 </div>
 </div>
-
 <p id="porcentajeTexto">0%</p>
 </div>
+
+<!-- FORMULARIO -->
 <div class="card">
 <h3>Agregar Paciente</h3>
 <form id="form">
@@ -86,6 +91,7 @@ style="height:25px;width:0%;background:#2563eb;border-radius:10px;">
 </form>
 </div>
 
+<!-- TABLA -->
 <table>
 <thead>
 <tr>
@@ -100,7 +106,7 @@ style="height:25px;width:0%;background:#2563eb;border-radius:10px;">
 <tbody id="tabla"></tbody>
 </table>
 
-<!-- FORMULARIO EDICION -->
+<!-- MODAL EDICIÓN -->
 <div id="editarModal" class="card hidden">
 <h3>Editar Paciente</h3>
 <form id="editForm">
@@ -143,6 +149,7 @@ style="height:25px;width:0%;background:#2563eb;border-radius:10px;">
 </div>
 
 <script>
+
 let pacientes = JSON.parse(localStorage.getItem("pacientes")) || []
 let ingresosVisible = true
 
@@ -154,27 +161,14 @@ function actualizarDashboard(){
 
 document.getElementById("total").innerText = pacientes.length
 
-let hoy = new Date()
-let mesActual = hoy.getMonth()
-let añoActual = hoy.getFullYear()
-
-// Filtrar pacientes del mes actual
-let pacientesMes = pacientes.filter(p=>{
-let fecha = new Date(p.fecha)
-return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual
-})
-
-// Pendientes del mes
-let pendientes = pacientesMes.filter(p=>p.estado==="Pendiente")
+let pendientes = pacientes.filter(p=>p.estado==="Pendiente")
 document.getElementById("pendientes").innerText = pendientes.length
 
-// Ingresos cobrados del mes
-let ingresos = pacientesMes
+let ingresos = pacientes
 .filter(p=>p.estado==="Pagado")
 .reduce((a,b)=>a+Number(b.valor||0),0)
 
-// Potencial del mes
-let potencial = pacientesMes
+let potencial = pacientes
 .reduce((a,b)=>a+Number(b.valor||0),0)
 
 document.getElementById("ingresos").innerText = ingresos
@@ -212,19 +206,18 @@ guardarStorage()
 document.getElementById("form").addEventListener("submit", e=>{
 e.preventDefault()
 let paciente={
-documento:document.getElementById("documento").value,
-nombre:document.getElementById("nombre").value,
-eps:document.getElementById("eps").value,
-direccion:document.getElementById("direccion").value,
-barrio:document.getElementById("barrio").value,
-localidad:document.getElementById("localidad").value,
-telefono:document.getElementById("telefono").value,
-servicio:document.getElementById("servicio").value,
-empresa:document.getElementById("empresa").value,
-valor:document.getElementById("valor").value,
-estado:document.getElementById("estado").value,
-observaciones:document.getElementById("observaciones").value
-fecha: new Date().toISOString()
+documento:documento.value,
+nombre:nombre.value,
+eps:eps.value,
+direccion:direccion.value,
+barrio:barrio.value,
+localidad:localidad.value,
+telefono:telefono.value,
+servicio:servicio.value,
+empresa:empresa.value,
+valor:valor.value,
+estado:estado.value,
+observaciones:observaciones.value
 }
 pacientes.push(paciente)
 e.target.reset()
@@ -233,25 +226,25 @@ render()
 
 function editar(i){
 let p = pacientes[i]
-document.getElementById("editarModal").classList.remove("hidden")
-document.getElementById("editIndex").value=i
-document.getElementById("editDocumento").value=p.documento
-document.getElementById("editNombre").value=p.nombre
-document.getElementById("editEps").value=p.eps
-document.getElementById("editDireccion").value=p.direccion
-document.getElementById("editBarrio").value=p.barrio
-document.getElementById("editLocalidad").value=p.localidad
-document.getElementById("editTelefono").value=p.telefono
-document.getElementById("editServicio").value=p.servicio
-document.getElementById("editEmpresa").value=p.empresa
-document.getElementById("editValor").value=p.valor
-document.getElementById("editEstado").value=p.estado
-document.getElementById("editObservaciones").value=p.observaciones
+editarModal.classList.remove("hidden")
+editIndex.value=i
+editDocumento.value=p.documento
+editNombre.value=p.nombre
+editEps.value=p.eps
+editDireccion.value=p.direccion
+editBarrio.value=p.barrio
+editLocalidad.value=p.localidad
+editTelefono.value=p.telefono
+editServicio.value=p.servicio
+editEmpresa.value=p.empresa
+editValor.value=p.valor
+editEstado.value=p.estado
+editObservaciones.value=p.observaciones
 }
 
 document.getElementById("editForm").addEventListener("submit", e=>{
 e.preventDefault()
-let i=document.getElementById("editIndex").value
+let i=editIndex.value
 pacientes[i]={
 documento:editDocumento.value,
 nombre:editNombre.value,
@@ -271,7 +264,7 @@ render()
 })
 
 function cerrarEdicion(){
-document.getElementById("editarModal").classList.add("hidden")
+editarModal.classList.add("hidden")
 }
 
 function eliminar(i){
@@ -283,11 +276,12 @@ render()
 
 function toggleIngresos(){
 ingresosVisible=!ingresosVisible
-document.getElementById("ingresos").style.visibility = ingresosVisible ? "visible":"hidden"
-document.getElementById("potencial").style.visibility = ingresosVisible ? "visible":"hidden"
+ingresos.style.visibility = ingresosVisible ? "visible":"hidden"
+potencial.style.visibility = ingresosVisible ? "visible":"hidden"
 }
 
 render()
+
 </script>
 
 </body>
