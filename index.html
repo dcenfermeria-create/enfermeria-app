@@ -7,9 +7,9 @@
 
 <style>
 body{
-    margin:0;
     font-family: Arial, sans-serif;
-    background:#f2f4f8;
+    margin:0;
+    background:#f4f6f9;
 }
 
 .header{
@@ -20,7 +20,7 @@ body{
 }
 
 .container{
-    padding:20px;
+    padding:15px;
 }
 
 .card{
@@ -28,49 +28,51 @@ body{
     padding:15px;
     margin-bottom:15px;
     border-radius:10px;
-    box-shadow:0 4px 10px rgba(0,0,0,0.05);
+    box-shadow:0 3px 8px rgba(0,0,0,0.08);
+}
+
+input, select{
+    width:100%;
+    padding:8px;
+    margin:5px 0;
+    border-radius:6px;
+    border:1px solid #ccc;
 }
 
 button{
-    padding:10px;
-    border:none;
-    border-radius:6px;
+    padding:8px;
     background:#1f3c88;
     color:white;
+    border:none;
+    border-radius:6px;
     cursor:pointer;
-    width:100%;
 }
 
 button:hover{
     background:#162d66;
 }
 
-input{
-    padding:10px;
-    width:100%;
-    margin-bottom:10px;
-    border-radius:6px;
-    border:1px solid #ccc;
-}
-
 .hidden{
     display:none;
+}
+
+.eye{
+    cursor:pointer;
+    margin-left:10px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
 <div id="loginScreen" class="container">
     <div class="card">
         <h2>Acceso Privado</h2>
-        <input type="password" id="pinInput" placeholder="Ingrese su PIN">
+        <input type="password" id="pinInput" placeholder="Ingrese PIN">
         <button onclick="login()">Entrar</button>
     </div>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
     <div class="header">
         <h2>Sistema Enfermería</h2>
@@ -80,15 +82,57 @@ input{
 
         <div class="card">
             <h3>Resumen General</h3>
-            <p>Pacientes pendientes: <strong id="pacientesPendientes">0</strong></p>
-            <p>Ingresos del mes: <strong>$<span id="ingresosMes">0</span></strong></p>
+            <p>Pacientes pendientes: <strong id="pendientes">0</strong></p>
+            <p>
+                Ingresos del mes:
+                <strong>$<span id="ingresos">0</span></strong>
+                <span class="eye" onclick="toggleIngresos()">👁</span>
+            </p>
         </div>
 
         <div class="card">
-            <h3>Módulos</h3>
-            <button onclick="alert('Módulo pacientes próximamente')">Gestión de Pacientes</button><br><br>
-            <button onclick="alert('Módulo financiero próximamente')">Control Financiero</button><br><br>
-            <button onclick="alert('Módulo IA próximamente')">Asistente IA</button>
+            <h3>Agregar Paciente</h3>
+            <input id="doc" placeholder="Documento">
+            <input id="nombre" placeholder="Nombre del paciente">
+            <input id="eps" placeholder="EPS">
+            <input id="direccion" placeholder="Dirección">
+            <input id="barrio" placeholder="Barrio">
+            <input id="localidad" placeholder="Localidad">
+            <input id="telefono" placeholder="Teléfono">
+
+            <select id="servicio">
+                <option value="">Seleccione Servicio</option>
+                <option>Cambio de sonda</option>
+                <option>Visita y entrenamiento</option>
+                <option>Curación de heridas</option>
+                <option>Toma de laboratorios</option>
+                <option>Administración de medicamentos</option>
+            </select>
+
+            <select id="empresa">
+                <option value="">Seleccione Empresa</option>
+                <option>Health and Life</option>
+                <option>Forma Your Life</option>
+                <option>Roosevelt</option>
+                <option>Independiente</option>
+            </select>
+
+            <input id="valor" type="number" placeholder="Valor del servicio">
+
+            <select id="estado">
+                <option>Pendiente</option>
+                <option>Visitado</option>
+                <option>No contesta</option>
+                <option>Reprogramar</option>
+                <option>Sin datos</option>
+            </select>
+
+            <button onclick="agregarPaciente()">Guardar Paciente</button>
+        </div>
+
+        <div class="card">
+            <h3>Lista de Pacientes</h3>
+            <div id="lista"></div>
         </div>
 
         <div class="card">
@@ -100,13 +144,16 @@ input{
 
 <script>
 
-const PIN_CORRECTO = "60507"; // CAMBIA ESTE PIN
+const PIN_CORRECTO = "60507";
+
+let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
+let ingresosVisible = true;
 
 function login(){
-    const pin = document.getElementById("pinInput").value;
-    if(pin === PIN_CORRECTO){
+    if(document.getElementById("pinInput").value === PIN_CORRECTO){
         document.getElementById("loginScreen").classList.add("hidden");
         document.getElementById("dashboard").classList.remove("hidden");
+        render();
     } else {
         alert("PIN incorrecto");
     }
@@ -115,6 +162,53 @@ function login(){
 function logout(){
     document.getElementById("dashboard").classList.add("hidden");
     document.getElementById("loginScreen").classList.remove("hidden");
+}
+
+function agregarPaciente(){
+    const paciente = {
+        doc: doc.value,
+        nombre: nombre.value,
+        servicio: servicio.value,
+        empresa: empresa.value,
+        valor: Number(valor.value),
+        estado: estado.value
+    };
+
+    pacientes.push(paciente);
+    localStorage.setItem("pacientes", JSON.stringify(pacientes));
+    limpiar();
+    render();
+}
+
+function limpiar(){
+    document.querySelectorAll("input").forEach(i=>i.value="");
+}
+
+function render(){
+    const lista = document.getElementById("lista");
+    lista.innerHTML = "";
+
+    let total = 0;
+    let pendientes = 0;
+
+    pacientes.forEach(p=>{
+        const div = document.createElement("div");
+        div.innerHTML = `
+            <p><strong>${p.nombre}</strong> - ${p.servicio} - ${p.estado} - $${p.valor}</p>
+        `;
+        lista.appendChild(div);
+
+        if(p.estado === "Pendiente") pendientes++;
+        if(p.estado === "Visitado") total += p.valor;
+    });
+
+    document.getElementById("pendientes").innerText = pendientes;
+    document.getElementById("ingresos").innerText = total;
+}
+
+function toggleIngresos(){
+    ingresosVisible = !ingresosVisible;
+    document.getElementById("ingresos").style.visibility = ingresosVisible ? "visible" : "hidden";
 }
 
 </script>
