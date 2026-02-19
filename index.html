@@ -2,286 +2,199 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión de Pacientes PRO</title>
-
+<title>Sistema de Facturación</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-body{font-family:Arial;background:#f4f6f9;margin:20px}
-h1{text-align:center}
-button{padding:6px 10px;margin:2px;border:none;border-radius:5px;cursor:pointer}
-.btn-primary{background:#2563eb;color:white}
-.btn-danger{background:#dc2626;color:white}
-.btn-edit{background:#f59e0b;color:white}
-input,select,textarea{padding:5px;margin:3px;width:100%}
-table{width:100%;border-collapse:collapse;margin-top:20px}
-th,td{border:1px solid #ddd;padding:8px;text-align:center}
-th{background:#2563eb;color:white}
-.card{background:white;padding:15px;border-radius:10px;margin-bottom:20px}
-.hidden{display:none}
-.dashboard{display:flex;gap:15px;flex-wrap:wrap}
-.dashboard div{background:white;padding:15px;border-radius:10px;flex:1;text-align:center;font-weight:bold}
+body { font-family: Arial; margin: 20px; }
+h2 { margin-top: 40px; }
+table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+button { padding: 5px 10px; margin: 3px; }
+input, select { padding: 4px; }
+.dashboard { background: #f4f4f4; padding: 10px; margin-top: 10px; }
+.pagado { background-color: #d4edda; }
+.pendiente { background-color: #f8d7da; }
 </style>
 </head>
-
 <body>
 
-<h1>Gestión de Pacientes</h1>
+<h1>Sistema de Facturación</h1>
 
-<!-- DASHBOARD -->
+<label>Mes:
+<input type="month" id="mesSelector">
+</label>
+
 <div class="dashboard">
-<div>Total Pacientes: <span id="total">0</span></div>
-<div>Pendientes: <span id="pendientes">0</span></div>
-<div>
-Ingresos Cobrados:<br>
-<span id="ingresos">0</span><br>
-Potencial del Mes:<br>
-<span id="potencial">0</span><br>
-<button onclick="toggleIngresos()">👁</button>
-</div>
+<h3>Resumen General</h3>
+<div id="totalGeneral"></div>
+<div id="resumenEmpresas"></div>
 </div>
 
-<!-- PROGRESO -->
-<div class="card">
-<h3>Progreso del Mes</h3>
-<div style="background:#ddd;border-radius:10px;height:25px;">
-<div id="barraProgreso" 
-style="height:25px;width:0%;background:#2563eb;border-radius:10px;">
-</div>
-</div>
-<p id="porcentajeTexto">0%</p>
-</div>
-
-<!-- FORMULARIO -->
-<div class="card">
-<h3>Agregar Paciente</h3>
-<form id="form">
-<input placeholder="Documento" id="documento" required>
-<input placeholder="Nombre del Paciente" id="nombre" required>
-<input placeholder="EPS" id="eps">
-<input placeholder="Dirección" id="direccion">
-<input placeholder="Barrio" id="barrio">
-<input placeholder="Localidad" id="localidad">
-<input placeholder="Teléfono" id="telefono">
-
-<select id="servicio">
-<option>Cambio de sonda</option>
-<option>Visita y entrenamiento</option>
-<option>Curación de heridas</option>
-<option>Toma de laboratorios</option>
-<option>Administración de medicamentos</option>
-</select>
-
-<select id="empresa">
-<option>Health and Life</option>
-<option>Forma your life</option>
-<option>Roosevelt</option>
-<option>Independiente</option>
-</select>
-
-<input type="number" placeholder="Valor" id="valor">
-
-<select id="estado">
-<option>Pendiente</option>
-<option>Pagado</option>
-</select>
-
-<textarea placeholder="Observaciones" id="observaciones"></textarea>
-
-<button type="submit" class="btn-primary">Guardar</button>
-</form>
-</div>
-
-<!-- TABLA -->
+<h2>Pacientes</h2>
 <table>
 <thead>
 <tr>
 <th>Documento</th>
 <th>Nombre</th>
-<th>Servicio</th>
 <th>Empresa</th>
+<th>Valor</th>
 <th>Estado</th>
-<th>Acciones</th>
+<th>Acción</th>
 </tr>
 </thead>
-<tbody id="tabla"></tbody>
+<tbody id="tablaPacientes"></tbody>
 </table>
 
-<!-- MODAL EDICIÓN -->
-<div id="editarModal" class="card hidden">
-<h3>Editar Paciente</h3>
-<form id="editForm">
-<input id="editIndex" type="hidden">
-<input id="editDocumento">
-<input id="editNombre">
-<input id="editEps">
-<input id="editDireccion">
-<input id="editBarrio">
-<input id="editLocalidad">
-<input id="editTelefono">
-
-<select id="editServicio">
-<option>Cambio de sonda</option>
-<option>Visita y entrenamiento</option>
-<option>Curación de heridas</option>
-<option>Toma de laboratorios</option>
-<option>Administración de medicamentos</option>
+<h2>Importar desde Excel</h2>
+<select id="empresaImport">
+<option value="Empresa A">Empresa A</option>
+<option value="Empresa B">Empresa B</option>
+<option value="Empresa C">Empresa C</option>
 </select>
+<input type="file" id="excelFile" accept=".xlsx,.xls">
+<button onclick="importarExcel()">Importar Excel</button>
 
-<select id="editEmpresa">
-<option>Health and Life</option>
-<option>Forma your life</option>
-<option>Roosevelt</option>
-<option>Independiente</option>
+<h2>Agregar Paciente</h2>
+<input type="text" id="doc" placeholder="Documento">
+<input type="text" id="nombre" placeholder="Nombre">
+<select id="empresa">
+<option value="Empresa A">Empresa A</option>
+<option value="Empresa B">Empresa B</option>
+<option value="Empresa C">Empresa C</option>
 </select>
-
-<input type="number" id="editValor">
-
-<select id="editEstado">
-<option>Pendiente</option>
-<option>Pagado</option>
-</select>
-
-<textarea id="editObservaciones"></textarea>
-
-<button type="submit" class="btn-primary">Actualizar</button>
-<button type="button" onclick="cerrarEdicion()">Cancelar</button>
-</form>
-</div>
+<input type="number" id="valor" placeholder="Valor">
+<button onclick="agregarPaciente()">Agregar</button>
 
 <script>
+let pacientes = [];
 
-let pacientes = JSON.parse(localStorage.getItem("pacientes")) || []
-let ingresosVisible = true
+document.getElementById("mesSelector").value = new Date().toISOString().slice(0,7);
 
-function guardarStorage(){
-localStorage.setItem("pacientes", JSON.stringify(pacientes))
+function agregarPaciente() {
+    const mesActual = document.getElementById("mesSelector").value;
+    const doc = document.getElementById("doc").value;
+    const nombre = document.getElementById("nombre").value;
+    const empresa = document.getElementById("empresa").value;
+    const valor = parseFloat(document.getElementById("valor").value);
+
+    if (!doc || !nombre || !valor) return alert("Complete todos los campos");
+
+    if (pacientes.some(p => p.documento === doc && p.mes === mesActual)) {
+        return alert("Este paciente ya existe en este mes");
+    }
+
+    pacientes.push({
+        documento: doc,
+        nombre: nombre,
+        empresa: empresa,
+        valor: valor,
+        estado: "Pendiente",
+        mes: mesActual
+    });
+
+    limpiarFormulario();
+    render();
 }
 
-function actualizarDashboard(){
-
-document.getElementById("total").innerText = pacientes.length
-
-let pendientes = pacientes.filter(p=>p.estado==="Pendiente")
-document.getElementById("pendientes").innerText = pendientes.length
-
-let ingresos = pacientes
-.filter(p=>p.estado==="Pagado")
-.reduce((a,b)=>a+Number(b.valor||0),0)
-
-let potencial = pacientes
-.reduce((a,b)=>a+Number(b.valor||0),0)
-
-document.getElementById("ingresos").innerText = ingresos
-document.getElementById("potencial").innerText = potencial
-
-let porcentaje = potencial > 0 ? (ingresos / potencial) * 100 : 0
-porcentaje = porcentaje.toFixed(1)
-
-document.getElementById("barraProgreso").style.width = porcentaje + "%"
-document.getElementById("porcentajeTexto").innerText = porcentaje + "%"
-
+function limpiarFormulario() {
+    document.getElementById("doc").value = "";
+    document.getElementById("nombre").value = "";
+    document.getElementById("valor").value = "";
 }
 
-function render(){
-let tabla = document.getElementById("tabla")
-tabla.innerHTML=""
-pacientes.forEach((p,i)=>{
-tabla.innerHTML += `
-<tr>
-<td>${p.documento}</td>
-<td>${p.nombre}</td>
-<td>${p.servicio}</td>
-<td>${p.empresa}</td>
-<td>${p.estado}</td>
-<td>
-<button class="btn-edit" onclick="editar(${i})">Editar</button>
-<button class="btn-danger" onclick="eliminar(${i})">Eliminar</button>
-</td>
-</tr>`
-})
-actualizarDashboard()
-guardarStorage()
+function cambiarEstado(index) {
+    pacientes[index].estado = pacientes[index].estado === "Pendiente" ? "Pagado" : "Pendiente";
+    render();
 }
 
-document.getElementById("form").addEventListener("submit", e=>{
-e.preventDefault()
-let paciente={
-documento:documento.value,
-nombre:nombre.value,
-eps:eps.value,
-direccion:direccion.value,
-barrio:barrio.value,
-localidad:localidad.value,
-telefono:telefono.value,
-servicio:servicio.value,
-empresa:empresa.value,
-valor:valor.value,
-estado:estado.value,
-observaciones:observaciones.value
-}
-pacientes.push(paciente)
-e.target.reset()
-render()
-})
-
-function editar(i){
-let p = pacientes[i]
-editarModal.classList.remove("hidden")
-editIndex.value=i
-editDocumento.value=p.documento
-editNombre.value=p.nombre
-editEps.value=p.eps
-editDireccion.value=p.direccion
-editBarrio.value=p.barrio
-editLocalidad.value=p.localidad
-editTelefono.value=p.telefono
-editServicio.value=p.servicio
-editEmpresa.value=p.empresa
-editValor.value=p.valor
-editEstado.value=p.estado
-editObservaciones.value=p.observaciones
+function editarValor(index, nuevoValor) {
+    pacientes[index].valor = parseFloat(nuevoValor);
+    render();
 }
 
-document.getElementById("editForm").addEventListener("submit", e=>{
-e.preventDefault()
-let i=editIndex.value
-pacientes[i]={
-documento:editDocumento.value,
-nombre:editNombre.value,
-eps:editEps.value,
-direccion:editDireccion.value,
-barrio:editBarrio.value,
-localidad:editLocalidad.value,
-telefono:editTelefono.value,
-servicio:editServicio.value,
-empresa:editEmpresa.value,
-valor:editValor.value,
-estado:editEstado.value,
-observaciones:editObservaciones.value
-}
-cerrarEdicion()
-render()
-})
+function render() {
+    const mesActual = document.getElementById("mesSelector").value;
+    const tabla = document.getElementById("tablaPacientes");
+    tabla.innerHTML = "";
 
-function cerrarEdicion(){
-editarModal.classList.add("hidden")
-}
+    let totalGeneral = 0;
+    let resumen = {};
 
-function eliminar(i){
-if(confirm("¿Eliminar paciente?")){
-pacientes.splice(i,1)
-render()
-}
-}
+    pacientes.filter(p => p.mes === mesActual).forEach((p, i) => {
+        totalGeneral += p.valor;
 
-function toggleIngresos(){
-ingresosVisible=!ingresosVisible
-ingresos.style.visibility = ingresosVisible ? "visible":"hidden"
-potencial.style.visibility = ingresosVisible ? "visible":"hidden"
+        if (!resumen[p.empresa]) resumen[p.empresa] = 0;
+        resumen[p.empresa] += p.valor;
+
+        tabla.innerHTML += `
+        <tr class="${p.estado === 'Pagado' ? 'pagado' : 'pendiente'}">
+            <td>${p.documento}</td>
+            <td>${p.nombre}</td>
+            <td>${p.empresa}</td>
+            <td><input type="number" value="${p.valor}" onchange="editarValor(${i}, this.value)"></td>
+            <td>${p.estado}</td>
+            <td><button onclick="cambiarEstado(${i})">Cambiar Estado</button></td>
+        </tr>
+        `;
+    });
+
+    document.getElementById("totalGeneral").innerHTML =
+        "<strong>Total General: $" + totalGeneral.toLocaleString() + "</strong>";
+
+    let resumenHTML = "<h4>Total por Empresa:</h4>";
+    for (let emp in resumen) {
+        resumenHTML += emp + ": $" + resumen[emp].toLocaleString() + "<br>";
+    }
+    document.getElementById("resumenEmpresas").innerHTML = resumenHTML;
 }
 
-render()
+function importarExcel() {
+    const fileInput = document.getElementById("excelFile");
+    const empresaSeleccionada = document.getElementById("empresaImport").value;
+    const mesActual = document.getElementById("mesSelector").value;
 
+    const file = fileInput.files[0];
+    if (!file) return alert("Seleccione un archivo");
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet);
+
+        let importados = 0;
+
+        json.forEach(row => {
+            const doc = row.Documento || row.documento;
+            const nombre = row.Nombre || row.nombre;
+            const valor = parseFloat(row.Valor || row.valor);
+
+            if (!doc || !nombre || !valor) return;
+
+            if (!pacientes.some(p => p.documento === doc && p.mes === mesActual)) {
+                pacientes.push({
+                    documento: doc,
+                    nombre: nombre,
+                    empresa: empresaSeleccionada,
+                    valor: valor,
+                    estado: "Pendiente",
+                    mes: mesActual
+                });
+                importados++;
+            }
+        });
+
+        alert("Se importaron " + importados + " pacientes");
+        render();
+    };
+
+    reader.readAsArrayBuffer(file);
+}
+
+document.getElementById("mesSelector").addEventListener("change", render);
+
+render();
 </script>
 
 </body>
