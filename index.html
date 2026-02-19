@@ -154,14 +154,27 @@ function actualizarDashboard(){
 
 document.getElementById("total").innerText = pacientes.length
 
-let pendientes = pacientes.filter(p=>p.estado==="Pendiente")
+let hoy = new Date()
+let mesActual = hoy.getMonth()
+let añoActual = hoy.getFullYear()
+
+// Filtrar pacientes del mes actual
+let pacientesMes = pacientes.filter(p=>{
+let fecha = new Date(p.fecha)
+return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual
+})
+
+// Pendientes del mes
+let pendientes = pacientesMes.filter(p=>p.estado==="Pendiente")
 document.getElementById("pendientes").innerText = pendientes.length
 
-let ingresos = pacientes
+// Ingresos cobrados del mes
+let ingresos = pacientesMes
 .filter(p=>p.estado==="Pagado")
 .reduce((a,b)=>a+Number(b.valor||0),0)
 
-let potencial = pacientes
+// Potencial del mes
+let potencial = pacientesMes
 .reduce((a,b)=>a+Number(b.valor||0),0)
 
 document.getElementById("ingresos").innerText = ingresos
@@ -174,6 +187,7 @@ document.getElementById("barraProgreso").style.width = porcentaje + "%"
 document.getElementById("porcentajeTexto").innerText = porcentaje + "%"
 
 }
+
 function render(){
 let tabla = document.getElementById("tabla")
 tabla.innerHTML=""
@@ -210,6 +224,7 @@ empresa:document.getElementById("empresa").value,
 valor:document.getElementById("valor").value,
 estado:document.getElementById("estado").value,
 observaciones:document.getElementById("observaciones").value
+fecha: new Date().toISOString()
 }
 pacientes.push(paciente)
 e.target.reset()
