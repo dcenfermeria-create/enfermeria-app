@@ -142,12 +142,22 @@ localStorage.setItem("pacientes", JSON.stringify(pacientes))
 
 function actualizarDashboard(){
 document.getElementById("total").innerText = pacientes.length
-document.getElementById("pendientes").innerText = pacientes.filter(p=>p.estado==="Pendiente").length
-let ingresos = pacientes.filter(p=>p.estado==="Pagado")
-.reduce((a,b)=>a+Number(b.valor||0),0)
-document.getElementById("ingresos").innerText = ingresos
-}
 
+let pendientes = pacientes.filter(p=>p.estado==="Pendiente")
+document.getElementById("pendientes").innerText = pendientes.length
+
+// Ingresos cobrados (solo pagados)
+let ingresos = pacientes
+.filter(p=>p.estado==="Pagado")
+.reduce((a,b)=>a+Number(b.valor||0),0)
+
+// Potencial total (todos los pacientes)
+let potencial = pacientes
+.reduce((a,b)=>a+Number(b.valor||0),0)
+
+document.getElementById("ingresos").innerText = ingresos
+document.getElementById("potencial").innerText = potencial
+}
 function render(){
 let tabla = document.getElementById("tabla")
 tabla.innerHTML=""
@@ -243,6 +253,7 @@ render()
 function toggleIngresos(){
 ingresosVisible=!ingresosVisible
 document.getElementById("ingresos").style.visibility = ingresosVisible ? "visible":"hidden"
+document.getElementById("potencial").style.visibility = ingresosVisible ? "visible":"hidden"
 }
 
 render()
