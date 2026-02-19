@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema Enfermería Diego</title>
+
+<style>
+body{
+    margin:0;
+    font-family: Arial, sans-serif;
+    background:#f2f4f8;
+}
+
+.header{
+    background:#1f3c88;
+    color:white;
+    padding:15px;
+    text-align:center;
+}
+
+.container{
+    padding:20px;
+}
+
+.card{
+    background:white;
+    padding:15px;
+    margin-bottom:15px;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
+
+button{
+    padding:10px;
+    border:none;
+    border-radius:6px;
+    background:#1f3c88;
+    color:white;
+    cursor:pointer;
+    width:100%;
+}
+
+button:hover{
+    background:#162d66;
+}
+
+input{
+    padding:10px;
+    width:100%;
+    margin-bottom:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+.hidden{
+    display:none;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="container">
+    <div class="card">
+        <h2>Acceso Privado</h2>
+        <input type="password" id="pinInput" placeholder="Ingrese su PIN">
+        <button onclick="login()">Entrar</button>
+    </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="hidden">
+    <div class="header">
+        <h2>Sistema Enfermería</h2>
+    </div>
+
+    <div class="container">
+
+        <div class="card">
+            <h3>Resumen General</h3>
+            <p>Pacientes pendientes: <strong id="pacientesPendientes">0</strong></p>
+            <p>Ingresos del mes: <strong>$<span id="ingresosMes">0</span></strong></p>
+        </div>
+
+        <div class="card">
+            <h3>Módulos</h3>
+            <button onclick="alert('Módulo pacientes próximamente')">Gestión de Pacientes</button><br><br>
+            <button onclick="alert('Módulo financiero próximamente')">Control Financiero</button><br><br>
+            <button onclick="alert('Módulo IA próximamente')">Asistente IA</button>
+        </div>
+
+        <div class="card">
+            <button onclick="logout()">Cerrar sesión</button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+const PIN_CORRECTO = "60507"; // CAMBIA ESTE PIN
+
+function login(){
+    const pin = document.getElementById("pinInput").value;
+    if(pin === PIN_CORRECTO){
+        document.getElementById("loginScreen").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+    } else {
+        alert("PIN incorrecto");
+    }
+}
+
+function logout(){
+    document.getElementById("dashboard").classList.add("hidden");
+    document.getElementById("loginScreen").classList.remove("hidden");
+}
+
+</script>
+
+</body>
+</html>
