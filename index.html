@@ -3,214 +3,246 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sistema Enfermería Diego</title>
-
+<title>Gestión de Pacientes</title>
 <style>
-body{
-    font-family: Arial, sans-serif;
-    margin:0;
-    background:#f4f6f9;
-}
-
-.header{
-    background:#1f3c88;
-    color:white;
-    padding:15px;
-    text-align:center;
-}
-
-.container{
-    padding:15px;
-}
-
-.card{
-    background:white;
-    padding:15px;
-    margin-bottom:15px;
-    border-radius:10px;
-    box-shadow:0 3px 8px rgba(0,0,0,0.08);
-}
-
-input, select{
-    width:100%;
-    padding:8px;
-    margin:5px 0;
-    border-radius:6px;
-    border:1px solid #ccc;
-}
-
-button{
-    padding:8px;
-    background:#1f3c88;
-    color:white;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-}
-
-button:hover{
-    background:#162d66;
-}
-
-.hidden{
-    display:none;
-}
-
-.eye{
-    cursor:pointer;
-    margin-left:10px;
-}
+body{font-family:Arial;background:#f4f6f9;margin:20px}
+h1{text-align:center}
+button{padding:6px 10px;margin:2px;border:none;border-radius:5px;cursor:pointer}
+.btn-primary{background:#2563eb;color:white}
+.btn-danger{background:#dc2626;color:white}
+.btn-edit{background:#f59e0b;color:white}
+input,select,textarea{padding:5px;margin:3px;width:100%}
+table{width:100%;border-collapse:collapse;margin-top:20px}
+th,td{border:1px solid #ddd;padding:8px;text-align:center}
+th{background:#2563eb;color:white}
+.card{background:white;padding:15px;border-radius:10px;margin-bottom:20px}
+.hidden{display:none}
+.dashboard{display:flex;gap:15px;flex-wrap:wrap}
+.dashboard div{background:white;padding:15px;border-radius:10px;flex:1;text-align:center;font-weight:bold}
 </style>
 </head>
-
 <body>
 
-<div id="loginScreen" class="container">
-    <div class="card">
-        <h2>Acceso Privado</h2>
-        <input type="password" id="pinInput" placeholder="Ingrese PIN">
-        <button onclick="login()">Entrar</button>
-    </div>
+<h1>Gestión de Pacientes</h1>
+
+<div class="dashboard">
+<div>Total Pacientes: <span id="total">0</span></div>
+<div>Pendientes: <span id="pendientes">0</span></div>
+<div>Ingresos del Mes: 
+<span id="ingresos">0</span> 
+<button onclick="toggleIngresos()">👁</button>
+</div>
 </div>
 
-<div id="dashboard" class="hidden">
-    <div class="header">
-        <h2>Sistema Enfermería</h2>
-    </div>
+<div class="card">
+<h3>Agregar Paciente</h3>
+<form id="form">
+<input placeholder="Documento" id="documento" required>
+<input placeholder="Nombre del Paciente" id="nombre" required>
+<input placeholder="EPS" id="eps">
+<input placeholder="Dirección" id="direccion">
+<input placeholder="Barrio" id="barrio">
+<input placeholder="Localidad" id="localidad">
+<input placeholder="Teléfono" id="telefono">
 
-    <div class="container">
+<select id="servicio">
+<option>Cambio de sonda</option>
+<option>Visita y entrenamiento</option>
+<option>Curación de heridas</option>
+<option>Toma de laboratorios</option>
+<option>Administración de medicamentos</option>
+</select>
 
-        <div class="card">
-            <h3>Resumen General</h3>
-            <p>Pacientes pendientes: <strong id="pendientes">0</strong></p>
-            <p>
-                Ingresos del mes:
-                <strong>$<span id="ingresos">0</span></strong>
-                <span class="eye" onclick="toggleIngresos()">👁</span>
-            </p>
-        </div>
+<select id="empresa">
+<option>Health and Life</option>
+<option>Forma your life</option>
+<option>Roosevelt</option>
+<option>Independiente</option>
+</select>
 
-        <div class="card">
-            <h3>Agregar Paciente</h3>
-            <input id="doc" placeholder="Documento">
-            <input id="nombre" placeholder="Nombre del paciente">
-            <input id="eps" placeholder="EPS">
-            <input id="direccion" placeholder="Dirección">
-            <input id="barrio" placeholder="Barrio">
-            <input id="localidad" placeholder="Localidad">
-            <input id="telefono" placeholder="Teléfono">
+<input type="number" placeholder="Valor" id="valor">
 
-            <select id="servicio">
-                <option value="">Seleccione Servicio</option>
-                <option>Cambio de sonda</option>
-                <option>Visita y entrenamiento</option>
-                <option>Curación de heridas</option>
-                <option>Toma de laboratorios</option>
-                <option>Administración de medicamentos</option>
-            </select>
+<select id="estado">
+<option>Pendiente</option>
+<option>Pagado</option>
+</select>
 
-            <select id="empresa">
-                <option value="">Seleccione Empresa</option>
-                <option>Health and Life</option>
-                <option>Forma Your Life</option>
-                <option>Roosevelt</option>
-                <option>Independiente</option>
-            </select>
+<textarea placeholder="Observaciones" id="observaciones"></textarea>
 
-            <input id="valor" type="number" placeholder="Valor del servicio">
+<button type="submit" class="btn-primary">Guardar</button>
+</form>
+</div>
 
-            <select id="estado">
-                <option>Pendiente</option>
-                <option>Visitado</option>
-                <option>No contesta</option>
-                <option>Reprogramar</option>
-                <option>Sin datos</option>
-            </select>
+<table>
+<thead>
+<tr>
+<th>Documento</th>
+<th>Nombre</th>
+<th>Servicio</th>
+<th>Empresa</th>
+<th>Estado</th>
+<th>Acciones</th>
+</tr>
+</thead>
+<tbody id="tabla"></tbody>
+</table>
 
-            <button onclick="agregarPaciente()">Guardar Paciente</button>
-        </div>
+<!-- FORMULARIO EDICION -->
+<div id="editarModal" class="card hidden">
+<h3>Editar Paciente</h3>
+<form id="editForm">
+<input id="editIndex" type="hidden">
+<input id="editDocumento">
+<input id="editNombre">
+<input id="editEps">
+<input id="editDireccion">
+<input id="editBarrio">
+<input id="editLocalidad">
+<input id="editTelefono">
 
-        <div class="card">
-            <h3>Lista de Pacientes</h3>
-            <div id="lista"></div>
-        </div>
+<select id="editServicio">
+<option>Cambio de sonda</option>
+<option>Visita y entrenamiento</option>
+<option>Curación de heridas</option>
+<option>Toma de laboratorios</option>
+<option>Administración de medicamentos</option>
+</select>
 
-        <div class="card">
-            <button onclick="logout()">Cerrar sesión</button>
-        </div>
+<select id="editEmpresa">
+<option>Health and Life</option>
+<option>Forma your life</option>
+<option>Roosevelt</option>
+<option>Independiente</option>
+</select>
 
-    </div>
+<input type="number" id="editValor">
+
+<select id="editEstado">
+<option>Pendiente</option>
+<option>Pagado</option>
+</select>
+
+<textarea id="editObservaciones"></textarea>
+
+<button type="submit" class="btn-primary">Actualizar</button>
+<button type="button" onclick="cerrarEdicion()">Cancelar</button>
+</form>
 </div>
 
 <script>
+let pacientes = JSON.parse(localStorage.getItem("pacientes")) || []
+let ingresosVisible = true
 
-const PIN_CORRECTO = "60507";
-
-let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
-let ingresosVisible = true;
-
-function login(){
-    if(document.getElementById("pinInput").value === PIN_CORRECTO){
-        document.getElementById("loginScreen").classList.add("hidden");
-        document.getElementById("dashboard").classList.remove("hidden");
-        render();
-    } else {
-        alert("PIN incorrecto");
-    }
+function guardarStorage(){
+localStorage.setItem("pacientes", JSON.stringify(pacientes))
 }
 
-function logout(){
-    document.getElementById("dashboard").classList.add("hidden");
-    document.getElementById("loginScreen").classList.remove("hidden");
-}
-
-function agregarPaciente(){
-    const paciente = {
-        doc: doc.value,
-        nombre: nombre.value,
-        servicio: servicio.value,
-        empresa: empresa.value,
-        valor: Number(valor.value),
-        estado: estado.value
-    };
-
-    pacientes.push(paciente);
-    localStorage.setItem("pacientes", JSON.stringify(pacientes));
-    limpiar();
-    render();
-}
-
-function limpiar(){
-    document.querySelectorAll("input").forEach(i=>i.value="");
+function actualizarDashboard(){
+document.getElementById("total").innerText = pacientes.length
+document.getElementById("pendientes").innerText = pacientes.filter(p=>p.estado==="Pendiente").length
+let ingresos = pacientes.filter(p=>p.estado==="Pagado")
+.reduce((a,b)=>a+Number(b.valor||0),0)
+document.getElementById("ingresos").innerText = ingresos
 }
 
 function render(){
-    const lista = document.getElementById("lista");
-    lista.innerHTML = "";
+let tabla = document.getElementById("tabla")
+tabla.innerHTML=""
+pacientes.forEach((p,i)=>{
+tabla.innerHTML += `
+<tr>
+<td>${p.documento}</td>
+<td>${p.nombre}</td>
+<td>${p.servicio}</td>
+<td>${p.empresa}</td>
+<td>${p.estado}</td>
+<td>
+<button class="btn-edit" onclick="editar(${i})">Editar</button>
+<button class="btn-danger" onclick="eliminar(${i})">Eliminar</button>
+</td>
+</tr>`
+})
+actualizarDashboard()
+guardarStorage()
+}
 
-    let total = 0;
-    let pendientes = 0;
+document.getElementById("form").addEventListener("submit", e=>{
+e.preventDefault()
+let paciente={
+documento:document.getElementById("documento").value,
+nombre:document.getElementById("nombre").value,
+eps:document.getElementById("eps").value,
+direccion:document.getElementById("direccion").value,
+barrio:document.getElementById("barrio").value,
+localidad:document.getElementById("localidad").value,
+telefono:document.getElementById("telefono").value,
+servicio:document.getElementById("servicio").value,
+empresa:document.getElementById("empresa").value,
+valor:document.getElementById("valor").value,
+estado:document.getElementById("estado").value,
+observaciones:document.getElementById("observaciones").value
+}
+pacientes.push(paciente)
+e.target.reset()
+render()
+})
 
-    pacientes.forEach(p=>{
-        const div = document.createElement("div");
-        div.innerHTML = `
-            <p><strong>${p.nombre}</strong> - ${p.servicio} - ${p.estado} - $${p.valor}</p>
-        `;
-        lista.appendChild(div);
+function editar(i){
+let p = pacientes[i]
+document.getElementById("editarModal").classList.remove("hidden")
+document.getElementById("editIndex").value=i
+document.getElementById("editDocumento").value=p.documento
+document.getElementById("editNombre").value=p.nombre
+document.getElementById("editEps").value=p.eps
+document.getElementById("editDireccion").value=p.direccion
+document.getElementById("editBarrio").value=p.barrio
+document.getElementById("editLocalidad").value=p.localidad
+document.getElementById("editTelefono").value=p.telefono
+document.getElementById("editServicio").value=p.servicio
+document.getElementById("editEmpresa").value=p.empresa
+document.getElementById("editValor").value=p.valor
+document.getElementById("editEstado").value=p.estado
+document.getElementById("editObservaciones").value=p.observaciones
+}
 
-        if(p.estado === "Pendiente") pendientes++;
-        if(p.estado === "Visitado") total += p.valor;
-    });
+document.getElementById("editForm").addEventListener("submit", e=>{
+e.preventDefault()
+let i=document.getElementById("editIndex").value
+pacientes[i]={
+documento:editDocumento.value,
+nombre:editNombre.value,
+eps:editEps.value,
+direccion:editDireccion.value,
+barrio:editBarrio.value,
+localidad:editLocalidad.value,
+telefono:editTelefono.value,
+servicio:editServicio.value,
+empresa:editEmpresa.value,
+valor:editValor.value,
+estado:editEstado.value,
+observaciones:editObservaciones.value
+}
+cerrarEdicion()
+render()
+})
 
-    document.getElementById("pendientes").innerText = pendientes;
-    document.getElementById("ingresos").innerText = total;
+function cerrarEdicion(){
+document.getElementById("editarModal").classList.add("hidden")
+}
+
+function eliminar(i){
+if(confirm("¿Eliminar paciente?")){
+pacientes.splice(i,1)
+render()
+}
 }
 
 function toggleIngresos(){
-    ingresosVisible = !ingresosVisible;
-    document.getElementById("ingresos").style.visibility = ingresosVisible ? "visible" : "hidden";
+ingresosVisible=!ingresosVisible
+document.getElementById("ingresos").style.visibility = ingresosVisible ? "visible":"hidden"
 }
 
+render()
 </script>
 
 </body>
