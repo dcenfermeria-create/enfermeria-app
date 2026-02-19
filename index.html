@@ -2,138 +2,259 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Visitas Domiciliarias</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visitas Domiciliarias - Sistema</title>
 <style>
-body{
-    font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg,#1f2937,#111827);
-    color:white;
-    margin:0;
-    padding:20px;
-}
-h1{ text-align:center; margin-bottom:20px; }
-.card{
-    background:#1f2937;
-    padding:20px;
-    border-radius:15px;
-    margin-bottom:25px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.4);
-}
-input, select{
-    padding:8px;
-    border-radius:8px;
-    border:none;
-    margin:5px;
-}
-button{
-    background:#3b82f6;
-    color:white;
-    border:none;
-    padding:8px 15px;
-    border-radius:8px;
-    cursor:pointer;
-}
-button:hover{ background:#2563eb; }
-table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:10px;
-    background:white;
-    color:black;
-    border-radius:10px;
-    overflow:hidden;
-}
-th{
-    background:#3b82f6;
-    color:white;
-    padding:10px;
-}
-td{
-    padding:8px;
-    border-bottom:1px solid #ddd;
-}
-.pagado{ background:#d1fae5 !important; }
-.pendiente{ background:#fee2e2 !important; }
+    body { font-family: Arial, sans-serif; background:#1e1e1e; color:#f0f0f0; margin:0; padding:20px; }
+    h1 { text-align:center; color:#f39c12; }
+    table { width:100%; border-collapse: collapse; margin-top:20px; }
+    th, td { border:1px solid #555; padding:5px; text-align:center; }
+    th { background:#34495e; color:white; }
+    tr.visitado { background:#2ecc71; color:white; }
+    tr.pendiente { background:#e74c3c; color:white; }
+    input, select, button { padding:5px; margin:2px; border-radius:4px; border:none; }
+    input, select { background:#2c3e50; color:white; }
+    button { cursor:pointer; background:#f39c12; color:white; }
+    button:hover { background:#e67e22; }
+    #dashboard { margin-top:20px; font-weight:bold; }
+    .peque { width:60px; }
 </style>
 </head>
 <body>
 
 <h1>Visitas Domiciliarias</h1>
 
-<div class="card">
-<h2>Pacientes</h2>
+<div id="dashboard">
+    Pacientes totales: <span id="totalPacientes">0</span> |
+    Visitados: <span id="visitados">0</span> |
+    Pendientes: <span id="pendientes">0</span> |
+    Progreso: <span id="progreso">0%</span> |
+    Generado mes: $<span id="generado">0</span> |
+    Expectativa mes: $<span id="expectativa">0</span>
+</div>
+
+<div>
+    <input type="text" id="buscador" placeholder="Buscar cédula, nombre o teléfono" oninput="render()">
+    <select id="empresaFiltro" onchange="render()">
+        <option value="Todas">Todas</option>
+        <option>Health and Life</option>
+        <option>For Your Life</option>
+        <option>Roosevelt</option>
+        <option>Independiente</option>
+    </select>
+</div>
+
 <table>
-<thead>
-<tr>
-<th>Documento</th>
-<th>Nombre</th>
-<th>Procedimiento</th>
-<th>Valor</th>
-<th>Estado</th>
-<th>Acción</th>
-</tr>
-</thead>
-<tbody id="tablaPacientes"></tbody>
+    <thead>
+        <tr>
+            <th>Documento</th>
+            <th>Nombre</th>
+            <th>EPS</th>
+            <th>Procedimiento</th>
+            <th>Valor</th>
+            <th>Dirección</th>
+            <th>Barrio</th>
+            <th>Localidad</th>
+            <th>Teléfono</th>
+            <th>Estado</th>
+            <th>Empresa</th>
+            <th>Visitado/Pendiente</th>
+            <th>Editar</th>
+            <th>Eliminar</th>
+        </tr>
+    </thead>
+    <tbody id="tablaPacientes"></tbody>
 </table>
+
+<h3>Agregar / Editar Paciente</h3>
+<div>
+    Documento: <input type="text" id="doc">
+    Nombre: <input type="text" id="nombre">
+    EPS: <input type="text" id="eps">
+    Procedimiento: 
+    <select id="procedimiento">
+        <option>Curación de heridas</option>
+        <option>Cambio de sonda</option>
+        <option>Visita sin entrenamiento</option>
+        <option>Toma de laboratorios</option>
+        <option>Otros</option>
+    </select>
+    Valor: <input type="number" id="valor" step="1000" class="peque">
+    Dirección: <input type="text" id="direccion">
+    Barrio: <input type="text" id="barrio">
+    Localidad: <input type="text" id="localidad">
+    Teléfono: <input type="text" id="telefono">
+    Estado: 
+    <select id="estado">
+        <option>Pendiente</option>
+        <option>Visitado</option>
+    </select>
+    Empresa:
+    <select id="empresaAgregar">
+        <option>Health and Life</option>
+        <option>For Your Life</option>
+        <option>Roosevelt</option>
+        <option>Independiente</option>
+    </select>
+    <button onclick="agregarPaciente()">Agregar / Guardar</button>
 </div>
 
-<div class="card">
-<h2>Agregar Paciente</h2>
-<input type="text" id="doc" placeholder="Documento">
-<input type="text" id="nombre" placeholder="Nombre completo">
-<input type="text" id="procedimiento" placeholder="Procedimiento">
-<input type="number" id="valor" placeholder="Valor">
-<button onclick="agregarPaciente()">Agregar</button>
-</div>
+<input type="file" id="excelInput" accept=".xlsx, .xls">
+<button onclick="importarExcel()">Importar Excel</button>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-let pacientes=[];
+let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
+let editarIndex = null;
 
-function agregarPaciente(){
-    let docVal = document.getElementById("doc").value;
-    let nombreVal = document.getElementById("nombre").value;
-    let procVal = document.getElementById("procedimiento").value;
-    let valorVal = parseFloat(document.getElementById("valor").value);
-
-    if(!docVal||!nombreVal||!valorVal) return alert("Documento, nombre y valor son obligatorios");
-
-    pacientes.push({
-        documento:docVal,
-        nombre:nombreVal,
-        procedimiento:procVal,
-        valor:valorVal,
-        estado:"Pendiente"
-    });
-
-    limpiar();
-    render();
-}
-
-function limpiar(){
-    doc.value=""; nombre.value=""; procedimiento.value=""; valor.value="";
-}
-
-function cambiarEstado(i){
-    pacientes[i].estado = pacientes[i].estado==="Pendiente"?"Pagado":"Pendiente";
-    render();
+function guardarLocalStorage() {
+    localStorage.setItem("pacientes", JSON.stringify(pacientes));
 }
 
 function render(){
-    let tabla=document.getElementById("tablaPacientes");
-    tabla.innerHTML="";
-    pacientes.forEach((p,i)=>{
-        tabla.innerHTML+=`
-        <tr class="${p.estado==="Pagado"?"pagado":"pendiente"}">
+    const tabla = document.getElementById("tablaPacientes");
+    tabla.innerHTML = "";
+
+    const buscadorVal = document.getElementById("buscador").value.toLowerCase();
+    const empresaSel = document.getElementById("empresaFiltro").value;
+
+    let filtrados = pacientes.map((p, index) => ({...p, index}));
+
+    if(buscadorVal){
+        filtrados = filtrados.filter(p =>
+            p.documento.toLowerCase().includes(buscadorVal) ||
+            p.nombre.toLowerCase().includes(buscadorVal) ||
+            p.telefono.toLowerCase().includes(buscadorVal)
+        );
+    } else if(empresaSel !== "Todas") {
+        filtrados = filtrados.filter(p => p.empresa === empresaSel);
+    }
+
+    filtrados.forEach(p => {
+        tabla.innerHTML += `
+        <tr class="${p.estado === "Visitado" ? "visitado" : "pendiente"}">
             <td>${p.documento}</td>
             <td>${p.nombre}</td>
+            <td>${p.eps}</td>
             <td>${p.procedimiento}</td>
-            <td><input type="number" value="${p.valor}" onchange="pacientes[${i}].valor=parseFloat(this.value);render();"></td>
+            <td>${p.valor.toLocaleString()}</td>
+            <td>${p.direccion}</td>
+            <td>${p.barrio}</td>
+            <td>${p.localidad}</td>
+            <td>${p.telefono}</td>
             <td>${p.estado}</td>
-            <td><button onclick="cambiarEstado(${i})">Cambiar</button></td>
+            <td>${p.empresa}</td>
+            <td><button onclick="cambiarEstado(${p.index})">${p.estado}</button></td>
+            <td><button onclick="editarPaciente(${p.index})">Editar</button></td>
+            <td><button onclick="eliminarPaciente(${p.index})">Eliminar</button></td>
         </tr>`;
     });
+    actualizarDashboard();
 }
 
+function actualizarDashboard(){
+    const total = pacientes.length;
+    const visitados = pacientes.filter(p => p.estado === "Visitado").length;
+    const pendientes = total - visitados;
+    document.getElementById("totalPacientes").innerText = total;
+    document.getElementById("visitados").innerText = visitados;
+    document.getElementById("pendientes").innerText = pendientes;
+    document.getElementById("progreso").innerText = total ? ((visitados/total)*100).toFixed(0)+"%" : "0%";
+    const generado = pacientes.filter(p => p.estado==="Visitado").reduce((a,b)=>a+b.valor,0);
+    const expectativa = pacientes.reduce((a,b)=>a+b.valor,0);
+    document.getElementById("generado").innerText = generado.toLocaleString();
+    document.getElementById("expectativa").innerText = expectativa.toLocaleString();
+}
+
+function agregarPaciente(){
+    const p = {
+        documento: doc.value,
+        nombre: nombre.value,
+        eps: eps.value,
+        procedimiento: procedimiento.value,
+        valor: parseInt(valor.value) || 0,
+        direccion: direccion.value,
+        barrio: barrio.value,
+        localidad: localidad.value,
+        telefono: telefono.value,
+        estado: estado.value,
+        empresa: empresaAgregar.value
+    };
+    if(editarIndex !== null){
+        pacientes[editarIndex] = p;
+        editarIndex = null;
+    } else {
+        pacientes.push(p);
+    }
+    guardarLocalStorage();
+    render();
+}
+
+function cambiarEstado(index){
+    pacientes[index].estado = pacientes[index].estado === "Visitado" ? "Pendiente" : "Visitado";
+    guardarLocalStorage();
+    render();
+}
+
+function editarPaciente(index){
+    editarIndex = index;
+    const p = pacientes[index];
+    doc.value = p.documento;
+    nombre.value = p.nombre;
+    eps.value = p.eps;
+    valor.value = p.valor;
+    direccion.value = p.direccion;
+    barrio.value = p.barrio;
+    localidad.value = p.localidad;
+    telefono.value = p.telefono;
+    estado.value = p.estado;
+    procedimiento.value = p.procedimiento;
+    empresaAgregar.value = p.empresa;
+    alert("Ahora edita los campos y presiona 'Agregar / Guardar' para actualizar.");
+}
+
+function eliminarPaciente(index){
+    if(confirm("¿Seguro desea eliminar este paciente?")){
+        pacientes.splice(index,1);
+        guardarLocalStorage();
+        render();
+    }
+}
+
+// Importar Excel avanzado
+function importarExcel(){
+    const file = document.getElementById("excelInput").files[0];
+    if(!file) return alert("Seleccione un archivo Excel");
+    const reader = new FileReader();
+    reader.onload = function(e){
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, {type:"array"});
+        workbook.SheetNames.forEach(sheetName => {
+            const ws = workbook.Sheets[sheetName];
+            const json = XLSX.utils.sheet_to_json(ws, {defval:""});
+            json.forEach(row => {
+                pacientes.push({
+                    documento: row["DOCUMENTO"] || row["Documento"] || row["Identificación"] || "",
+                    nombre: row["NOMBRE"] || row["Nombre completo"] || row["Nombre"] || "",
+                    eps: row["EPS"] || row["Aseguradora"] || "",
+                    procedimiento: sheetName,
+                    valor: parseInt(row["Valor"] || row["Valor a pagar"] || 0),
+                    direccion: row["DIRECCIÓN"] || row["Direccion"] || "",
+                    barrio: row["BARRIO"] || row["Barrio"] || "",
+                    localidad: row["LOCALIDAD"] || row["Loc"] || "",
+                    telefono: row["TELÉFONO"] || row["Telefono"] || row["Número de teléfono"] || "",
+                    estado: "Pendiente",
+                    empresa: empresaAgregar.value
+                });
+            });
+        });
+        guardarLocalStorage();
+        render();
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+// Inicial
 render();
 </script>
 
