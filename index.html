@@ -2,41 +2,104 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Sistema de Facturación</title>
+<title>Sistema Profesional de Facturación</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-body { font-family: Arial; margin: 20px; }
-h2 { margin-top: 40px; }
-table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
-button { padding: 5px 10px; margin: 3px; }
-input, select { padding: 4px; }
-.dashboard { background: #f4f4f4; padding: 10px; margin-top: 10px; }
-.pagado { background-color: #d4edda; }
-.pendiente { background-color: #f8d7da; }
+body{
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg,#1f2937,#111827);
+    color:white;
+    margin:0;
+    padding:20px;
+}
+h1{ text-align:center; margin-bottom:20px; }
+.card{
+    background:#1f2937;
+    padding:20px;
+    border-radius:15px;
+    margin-bottom:25px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+input, select{
+    padding:8px;
+    border-radius:8px;
+    border:none;
+    margin:5px;
+}
+button{
+    background:#3b82f6;
+    color:white;
+    border:none;
+    padding:8px 15px;
+    border-radius:8px;
+    cursor:pointer;
+}
+button:hover{ background:#2563eb; }
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+    background:white;
+    color:black;
+    border-radius:10px;
+    overflow:hidden;
+}
+th{
+    background:#3b82f6;
+    color:white;
+    padding:10px;
+}
+td{
+    padding:8px;
+    border-bottom:1px solid #ddd;
+}
+.pagado{ background:#d1fae5 !important; }
+.pendiente{ background:#fee2e2 !important; }
+.dashboard{
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+}
+.resumenBox{
+    background:#111827;
+    padding:15px;
+    border-radius:10px;
+    margin:5px;
+}
 </style>
 </head>
 <body>
 
-<h1>Sistema de Facturación</h1>
+<h1>Sistema Profesional de Facturación</h1>
 
+<div class="card">
 <label>Mes:
 <input type="month" id="mesSelector">
 </label>
-
-<div class="dashboard">
-<h3>Resumen General</h3>
-<div id="totalGeneral"></div>
-<div id="resumenEmpresas"></div>
 </div>
 
+<div class="card dashboard">
+<div class="resumenBox">
+<h3>Total General</h3>
+<div id="totalGeneral">$0</div>
+</div>
+<div class="resumenBox">
+<h3>Total por Empresa</h3>
+<div id="resumenEmpresas"></div>
+</div>
+</div>
+
+<div class="card">
 <h2>Pacientes</h2>
 <table>
 <thead>
 <tr>
+<th>EPS</th>
 <th>Documento</th>
 <th>Nombre</th>
-<th>Empresa</th>
+<th>Dirección</th>
+<th>Teléfono</th>
+<th>Procedimiento</th>
 <th>Valor</th>
 <th>Estado</th>
 <th>Acción</th>
@@ -44,156 +107,162 @@ input, select { padding: 4px; }
 </thead>
 <tbody id="tablaPacientes"></tbody>
 </table>
+</div>
 
-<h2>Importar desde Excel</h2>
+<div class="card">
+<h2>Importar Excel</h2>
 <select id="empresaImport">
-<option value="Empresa A">Empresa A</option>
-<option value="Empresa B">Empresa B</option>
-<option value="Empresa C">Empresa C</option>
+<option value="SURA">SURA</option>
+<option value="Nueva EPS">Nueva EPS</option>
+<option value="Sanitas">Sanitas</option>
 </select>
 <input type="file" id="excelFile" accept=".xlsx,.xls">
-<button onclick="importarExcel()">Importar Excel</button>
+<button onclick="importarExcel()">Importar</button>
+</div>
 
+<div class="card">
 <h2>Agregar Paciente</h2>
+<input type="text" id="eps" placeholder="EPS">
 <input type="text" id="doc" placeholder="Documento">
-<input type="text" id="nombre" placeholder="Nombre">
-<select id="empresa">
-<option value="Empresa A">Empresa A</option>
-<option value="Empresa B">Empresa B</option>
-<option value="Empresa C">Empresa C</option>
-</select>
+<input type="text" id="nombre" placeholder="Nombre completo">
+<input type="text" id="direccion" placeholder="Dirección">
+<input type="text" id="telefono" placeholder="Teléfono">
+<input type="text" id="procedimiento" placeholder="Procedimiento realizado">
 <input type="number" id="valor" placeholder="Valor">
 <button onclick="agregarPaciente()">Agregar</button>
+</div>
 
 <script>
-let pacientes = [];
+let pacientes=[];
 
-document.getElementById("mesSelector").value = new Date().toISOString().slice(0,7);
+document.getElementById("mesSelector").value=new Date().toISOString().slice(0,7);
 
-function agregarPaciente() {
-    const mesActual = document.getElementById("mesSelector").value;
-    const doc = document.getElementById("doc").value;
-    const nombre = document.getElementById("nombre").value;
-    const empresa = document.getElementById("empresa").value;
-    const valor = parseFloat(document.getElementById("valor").value);
+function agregarPaciente(){
+    const mes=document.getElementById("mesSelector").value;
 
-    if (!doc || !nombre || !valor) return alert("Complete todos los campos");
+    let nuevo={
+        eps:eps.value,
+        documento:doc.value,
+        nombre:nombre.value,
+        direccion:direccion.value,
+        telefono:telefono.value,
+        procedimiento:procedimiento.value,
+        valor:parseFloat(valor.value),
+        estado:"Pendiente",
+        mes:mes
+    };
 
-    if (pacientes.some(p => p.documento === doc && p.mes === mesActual)) {
-        return alert("Este paciente ya existe en este mes");
-    }
+    if(!nuevo.documento||!nuevo.nombre||!nuevo.valor)
+        return alert("Documento, nombre y valor son obligatorios");
 
-    pacientes.push({
-        documento: doc,
-        nombre: nombre,
-        empresa: empresa,
-        valor: valor,
-        estado: "Pendiente",
-        mes: mesActual
-    });
+    if(pacientes.some(p=>p.documento===nuevo.documento && p.mes===mes))
+        return alert("Paciente ya existe en este mes");
 
-    limpiarFormulario();
+    pacientes.push(nuevo);
+    limpiar();
     render();
 }
 
-function limpiarFormulario() {
-    document.getElementById("doc").value = "";
-    document.getElementById("nombre").value = "";
-    document.getElementById("valor").value = "";
+function limpiar(){
+    eps.value="";
+    doc.value="";
+    nombre.value="";
+    direccion.value="";
+    telefono.value="";
+    procedimiento.value="";
+    valor.value="";
 }
 
-function cambiarEstado(index) {
-    pacientes[index].estado = pacientes[index].estado === "Pendiente" ? "Pagado" : "Pendiente";
+function cambiarEstado(i){
+    pacientes[i].estado=pacientes[i].estado==="Pendiente"?"Pagado":"Pendiente";
     render();
 }
 
-function editarValor(index, nuevoValor) {
-    pacientes[index].valor = parseFloat(nuevoValor);
-    render();
-}
+function render(){
+    const mes=document.getElementById("mesSelector").value;
+    let tabla=document.getElementById("tablaPacientes");
+    tabla.innerHTML="";
+    let total=0;
+    let resumen={};
 
-function render() {
-    const mesActual = document.getElementById("mesSelector").value;
-    const tabla = document.getElementById("tablaPacientes");
-    tabla.innerHTML = "";
+    pacientes.filter(p=>p.mes===mes).forEach((p,i)=>{
+        total+=p.valor;
 
-    let totalGeneral = 0;
-    let resumen = {};
+        if(!resumen[p.eps]) resumen[p.eps]=0;
+        resumen[p.eps]+=p.valor;
 
-    pacientes.filter(p => p.mes === mesActual).forEach((p, i) => {
-        totalGeneral += p.valor;
-
-        if (!resumen[p.empresa]) resumen[p.empresa] = 0;
-        resumen[p.empresa] += p.valor;
-
-        tabla.innerHTML += `
-        <tr class="${p.estado === 'Pagado' ? 'pagado' : 'pendiente'}">
+        tabla.innerHTML+=`
+        <tr class="${p.estado==="Pagado"?"pagado":"pendiente"}">
+            <td>${p.eps}</td>
             <td>${p.documento}</td>
             <td>${p.nombre}</td>
-            <td>${p.empresa}</td>
-            <td><input type="number" value="${p.valor}" onchange="editarValor(${i}, this.value)"></td>
+            <td>${p.direccion}</td>
+            <td>${p.telefono}</td>
+            <td>${p.procedimiento}</td>
+            <td><input type="number" value="${p.valor}" onchange="pacientes[${i}].valor=parseFloat(this.value);render();"></td>
             <td>${p.estado}</td>
-            <td><button onclick="cambiarEstado(${i})">Cambiar Estado</button></td>
-        </tr>
-        `;
+            <td><button onclick="cambiarEstado(${i})">Cambiar</button></td>
+        </tr>`;
     });
 
-    document.getElementById("totalGeneral").innerHTML =
-        "<strong>Total General: $" + totalGeneral.toLocaleString() + "</strong>";
+    totalGeneral.innerHTML="$"+total.toLocaleString();
 
-    let resumenHTML = "<h4>Total por Empresa:</h4>";
-    for (let emp in resumen) {
-        resumenHTML += emp + ": $" + resumen[emp].toLocaleString() + "<br>";
-    }
-    document.getElementById("resumenEmpresas").innerHTML = resumenHTML;
+    let texto="";
+    for(let e in resumen)
+        texto+=e+": $"+resumen[e].toLocaleString()+"<br>";
+
+    resumenEmpresas.innerHTML=texto;
 }
 
-function importarExcel() {
-    const fileInput = document.getElementById("excelFile");
-    const empresaSeleccionada = document.getElementById("empresaImport").value;
-    const mesActual = document.getElementById("mesSelector").value;
+function importarExcel(){
+    const file=document.getElementById("excelFile").files[0];
+    const mes=document.getElementById("mesSelector").value;
+    if(!file) return alert("Seleccione archivo");
 
-    const file = fileInput.files[0];
-    if (!file) return alert("Seleccione un archivo");
+    const reader=new FileReader();
+    reader.onload=function(e){
+        const data=new Uint8Array(e.target.result);
+        const wb=XLSX.read(data,{type:'array'});
+        const sheet=wb.Sheets[wb.SheetNames[0]];
+        const json=XLSX.utils.sheet_to_json(sheet);
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet);
+        let count=0;
 
-        let importados = 0;
+        json.forEach(row=>{
+            let doc=row["Número de documento"]||row["numero de documento"];
+            let nombre=row["Nombre completo"];
+            let eps=row["Aseguradora"];
+            let direccion=row["Dirección"];
+            let telefono=row["Teléfono"];
+            let procedimiento=row["Procedimiento"]||"";
+            let valor=parseFloat(row["Valor"]||0);
 
-        json.forEach(row => {
-            const doc = row.Documento || row.documento;
-            const nombre = row.Nombre || row.nombre;
-            const valor = parseFloat(row.Valor || row.valor);
+            if(!doc||!nombre) return;
 
-            if (!doc || !nombre || !valor) return;
-
-            if (!pacientes.some(p => p.documento === doc && p.mes === mesActual)) {
+            if(!pacientes.some(p=>p.documento===doc && p.mes===mes)){
                 pacientes.push({
-                    documento: doc,
-                    nombre: nombre,
-                    empresa: empresaSeleccionada,
-                    valor: valor,
-                    estado: "Pendiente",
-                    mes: mesActual
+                    eps:eps,
+                    documento:doc,
+                    nombre:nombre,
+                    direccion:direccion,
+                    telefono:telefono,
+                    procedimiento:procedimiento,
+                    valor:valor,
+                    estado:"Pendiente",
+                    mes:mes
                 });
-                importados++;
+                count++;
             }
         });
 
-        alert("Se importaron " + importados + " pacientes");
+        alert("Importados: "+count+" pacientes");
         render();
     };
 
     reader.readAsArrayBuffer(file);
 }
 
-document.getElementById("mesSelector").addEventListener("change", render);
-
+mesSelector.addEventListener("change",render);
 render();
 </script>
 
